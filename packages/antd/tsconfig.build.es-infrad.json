@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./esm",
+    "paths": {
+      "@formily/*": ["packages/*", "devtools/*"]
+    },
+    "declaration": true
+  },
+  "tsc-alias": {
+    "replacers": {
+      "antd": {
+        "enabled": true,
+        "file": "./replacer.js"
+      }
+    }
+  }
+}

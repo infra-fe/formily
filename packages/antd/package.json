@@ -32,6 +32,8 @@
     "start": "dumi dev",
     "build": "rimraf -rf lib esm dist && npm run create:style && npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:style",
     "create:style": "ts-node create-style",
+    "build:es-alias": "yarn build:esm && tsc-alias -p tsconfig.build.es-infrad.json",
+    "build:cjs-alias": "yarn build:cjs && tsc-alias -p tsconfig.build.es-infrad.json",
     "build:style": "ts-node build-style",
     "build:cjs": "tsc --project tsconfig.build.json",
     "build:esm": "tsc --project tsconfig.build.json --module es2015 --outDir esm",
