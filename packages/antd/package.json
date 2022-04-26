@@ -40,7 +40,8 @@
     "build:cjs": "tsc --project tsconfig.build.json",
     "build:esm": "tsc --project tsconfig.build.json --module es2015 --outDir esm",
     "build:umd": "rollup --config",
-    "build:docs": "dumi build"
+    "build:docs": "dumi build",
+    "publish:infrad": "yarn build:infrad && yarn publish --tag beta"
   },
   "devDependencies": {
     "@umijs/plugin-sass": "^1.1.1",
