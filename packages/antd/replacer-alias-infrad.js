@@ -3,4 +3,5 @@ exports.default = ({ orig, file, config }) => {
     .replace(`from 'antd`, `from 'infrad`)
     .replace(`import 'antd`, `import 'infrad`)
     .replace(`import("antd`, `import("infrad`)
+    .replace(`require("antd`, `require("infrad`)
 }

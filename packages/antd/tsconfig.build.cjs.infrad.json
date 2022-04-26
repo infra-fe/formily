@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "outDir": "./lib"
+  },
+  "tsc-alias": {
+    "replacers": {
+      "antd": {
+        "enabled": true,
+        "file": "./replacer-alias-infrad.js"
+      }
+    }
+  }
+}
