@@ -1,5 +1,5 @@
 import { autorun, batch } from '@formily/reactive'
-import { createForm } from '../'
+import { createForm, onFieldReact, isField } from '../'
 import { DataField } from '../types'
 import { attach, sleep } from './shared'
 
@@ -683,6 +683,7 @@ test('reset', async () => {
       },
       initialValues: {
         aa: 123,
+        cc: null,
       },
     })
   )
@@ -698,12 +699,28 @@ test('reset', async () => {
       required: true,
     })
   )
+  const cc = attach(
+    form.createField({
+      name: 'cc',
+      required: true,
+    })
+  )
+  const dd = attach(
+    form.createField({
+      name: 'dd',
+      required: true,
+    })
+  )
   expect(aa.value).toEqual(123)
   expect(bb.value).toEqual(123)
+  expect(cc.value).toEqual(null)
   expect(form.values.aa).toEqual(123)
   expect(form.values.bb).toEqual(123)
+  expect(form.values.cc).toEqual(null)
   aa.onInput('xxxxx')
   expect(form.values.aa).toEqual('xxxxx')
+  dd.onInput(null)
+  expect(form.values.dd).toEqual(null)
   aa.reset()
   expect(aa.value).toEqual(123)
   expect(form.values.aa).toEqual(123)
@@ -712,17 +729,40 @@ test('reset', async () => {
   bb.reset()
   expect(bb.value).toBeUndefined()
   expect(form.values.bb).toBeUndefined()
+
+  cc.onInput('xxxxx')
+  expect(form.values.cc).toEqual('xxxxx')
+  cc.reset()
+  expect(cc.value).toBeNull()
+  expect(form.values.cc).toBeNull()
+  dd.reset()
+  expect(dd.value).toBeUndefined()
+  expect(form.values.dd).toBeUndefined()
+
   aa.reset({
     forceClear: true,
   })
   expect(aa.value).toBeUndefined()
   expect(form.values.aa).toBeUndefined()
+  cc.reset({
+    forceClear: true,
+  })
+  expect(cc.value).toBeUndefined()
+  expect(form.values.cc).toBeUndefined()
+
   expect(aa.valid).toBeTruthy()
   await aa.reset({
     forceClear: true,
     validate: true,
   })
   expect(aa.valid).toBeFalsy()
+
+  expect(cc.valid).toBeTruthy()
+  await cc.reset({
+    forceClear: true,
+    validate: true,
+  })
+  expect(cc.valid).toBeFalsy()
 })
 
 test('match', () => {
@@ -1550,6 +1590,9 @@ test('initial value with empty', () => {
   const form = attach(createForm())
   const array = attach(form.createField({ name: 'array', initialValue: '' }))
   expect(array.value).toEqual('')
+
+  const beNull = attach(form.createField({ name: 'null', initialValue: null }))
+  expect(beNull.value).toEqual(null)
 })
 
 test('field submit', async () => {
@@ -1849,7 +1892,7 @@ test('path change will update computed value', () => {
     value(input.value)
   })
   batch(() => {
-    input.makeIndexes('select')
+    input.locate('select')
     input.value = '123'
   })
   expect(value).nthCalledWith(2, '123')
@@ -1878,4 +1921,227 @@ test('object field reset', async () => {
     },
   })
   expect(input.value).toBe('123')
+})
+
+test('field visible default value should work', () => {
+  const form = attach(
+    createForm({
+      effects(form) {
+        onFieldReact('obj.input1', (field) => {
+          field.pattern = 'disabled'
+        })
+        onFieldReact('obj', (field) => {
+          field.visible = form.values.select !== 'none'
+        })
+        onFieldReact('obj.input1', (field) => {
+          if (isField(field)) {
+            field.initialValue = '123'
+          }
+        })
+        onFieldReact('obj.input2', (field) => {
+          if (isField(field)) {
+            field.value = form.values.select
+          }
+        })
+      },
+    })
+  )
+
+  const select = attach(
+    form.createField({
+      name: 'select',
+    })
+  )
+
+  attach(
+    form.createObjectField({
+      name: 'obj',
+    })
+  )
+
+  attach(
+    form.createField({
+      name: 'input1',
+      basePath: 'obj',
+    })
+  )
+
+  attach(
+    form.createField({
+      name: 'input2',
+      basePath: 'obj',
+    })
+  )
+
+  select.value = 'none'
+  expect(form.values.obj?.input1).toBeUndefined()
+  select.value = 'visible'
+  expect(form.values.obj.input1).toBe('123')
+})
+
+test('query value with sibling path syntax', () => {
+  const form = attach(createForm())
+  const fn = jest.fn()
+  attach(
+    form.createVoidField({
+      name: 'void',
+    })
+  )
+  attach(
+    form.createObjectField({
+      name: 'obj',
+      basePath: 'void',
+    })
+  )
+  attach(
+    form.createField({
+      name: 'input',
+      basePath: 'void.obj',
+      reactions: [
+        (field) => {
+          fn(
+            field.query('.textarea').value(),
+            field.query('.textarea').initialValue()
+          )
+        },
+      ],
+    })
+  )
+  const textarea = attach(
+    form.createField({
+      name: 'textarea',
+      basePath: 'void.obj',
+      initialValue: 'aaa',
+    })
+  )
+  textarea.value = '123'
+  expect(fn).toBeCalledWith('123', 'aaa')
+})
+
+test('relative query with void field', () => {
+  const form = attach(createForm())
+  attach(
+    form.createVoidField({
+      name: 'void',
+    })
+  )
+  const aa = attach(
+    form.createField({
+      name: 'aa',
+      basePath: 'void',
+    })
+  )
+  attach(
+    form.createVoidField({
+      name: 'mm',
+    })
+  )
+  const bb = attach(
+    form.createField({
+      name: 'bb',
+      basePath: 'mm',
+    })
+  )
+
+  expect(bb.query('.aa').take()).toBe(aa)
+})
+
+test('empty string or number or null value need rewrite default value', () => {
+  const form = attach(
+    createForm<any>({
+      values: {
+        aa: '',
+        bb: 0,
+        ee: null,
+      },
+    })
+  )
+  attach(
+    form.createField({
+      name: 'aa',
+      initialValue: 'test',
+    })
+  )
+  attach(
+    form.createField({
+      name: 'bb',
+      initialValue: 123,
+    })
+  )
+  attach(
+    form.createField({
+      name: 'cc',
+      initialValue: 'test',
+    })
+  )
+  attach(
+    form.createField({
+      name: 'dd',
+      initialValue: 123,
+    })
+  )
+  attach(
+    form.createField({
+      name: 'ee',
+      initialValue: 'test',
+    })
+  )
+  expect(form.values.aa).toEqual('')
+  expect(form.values.bb).toEqual(0)
+  expect(form.values.cc).toEqual('test')
+  expect(form.values.dd).toEqual(123)
+  expect(form.values.ee).toEqual(null)
+})
+
+test('destroy field need auto remove initialValues', () => {
+  const form = attach(createForm<any>())
+  const aa = attach(
+    form.createField({
+      name: 'aa',
+      initialValue: 'test',
+    })
+  )
+  expect(form.initialValues.aa).toEqual('test')
+  expect(form.values.aa).toEqual('test')
+  aa.destroy()
+  expect(form.initialValues.aa).toBeUndefined()
+  expect(form.values.aa).toBeUndefined()
+})
+
+test('validateFirst', async () => {
+  const form = attach(
+    createForm<any>({
+      validateFirst: false,
+    })
+  )
+  const aaValidate = jest.fn(() => 'aaError')
+  const aa = attach(
+    form.createField({
+      name: 'aa',
+      validateFirst: true,
+      validator: [aaValidate, aaValidate],
+    })
+  )
+  await aa.onInput('aa')
+  const bbValidate = jest.fn(() => 'bbError')
+  const bb = attach(
+    form.createField({
+      name: 'bb',
+      validator: [bbValidate, bbValidate],
+      validateFirst: false,
+    })
+  )
+  await bb.onInput('bb')
+  const ccValidate = jest.fn(() => 'ccError')
+  const cc = attach(
+    form.createField({
+      name: 'cc',
+      validator: [ccValidate, ccValidate],
+    })
+  )
+  await cc.onInput('cc')
+
+  expect(aaValidate).toBeCalledTimes(1)
+  expect(bbValidate).toBeCalledTimes(2)
+  expect(ccValidate).toBeCalledTimes(2)
 })

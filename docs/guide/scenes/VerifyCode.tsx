@@ -9,13 +9,9 @@ interface IVerifyCodeProps {
   style?: React.CSSProperties
 }
 
-export const VerifyCode: React.FC<IVerifyCodeProps> = ({
-  value,
-  onChange,
-  readyPost,
-  phoneNumber,
-  ...props
-}) => {
+export const VerifyCode: React.FC<
+  React.PropsWithChildren<IVerifyCodeProps>
+> = ({ value, onChange, readyPost, phoneNumber, ...props }) => {
   const [lastTime, setLastTime] = useState(0)
 
   const counting = (time = 20) => {

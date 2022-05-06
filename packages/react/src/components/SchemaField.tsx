@@ -1,6 +1,6 @@
 import React, { useContext, Fragment } from 'react'
 import { ISchema, Schema } from '@formily/json-schema'
-import { RecursionField } from '.'
+import { RecursionField } from './RecursionField'
 import { render } from '../shared/render'
 import {
   SchemaMarkupContext,
@@ -16,6 +16,7 @@ import {
   ISchemaMarkupFieldProps,
   ISchemaTypeFieldProps,
 } from '../types'
+import { FormPath } from '@formily/shared'
 const env = {
   nonameId: 0,
 }
@@ -55,9 +56,10 @@ export function createSchemaField<Components extends SchemaReactComponents>(
       <SchemaOptionsContext.Provider
         value={{
           ...options,
-          components: {
-            ...options.components,
-            ...props.components,
+          getComponent(name) {
+            const propsComponent = FormPath.getIn(props.components, name)
+            if (propsComponent) return propsComponent
+            return FormPath.getIn(options.components, name)
           },
         }}
       >
@@ -76,25 +78,22 @@ export function createSchemaField<Components extends SchemaReactComponents>(
 
   SchemaField.displayName = 'SchemaField'
 
-  function MarkupField<
-    Decorator extends ReactComponentPath<Components>,
-    Component extends ReactComponentPath<Components>
-  >(props: ISchemaMarkupFieldProps<Components, Component, Decorator>) {
+  function MarkupRender(props: any) {
     const parent = useContext(SchemaMarkupContext)
     if (!parent) return <Fragment />
     const renderChildren = () => {
       return <React.Fragment>{props.children}</React.Fragment>
     }
     const appendArraySchema = (schema: ISchema) => {
-      if (parent.items) {
-        return parent.addProperty(name, schema)
+      const items = parent.items as Schema
+      if (items && items.name !== props.name) {
+        return parent.addProperty(props.name, schema)
       } else {
-        return parent.setItems(props)
+        return parent.setItems(schema)
       }
     }
-    const name = props.name || getRandomName()
     if (parent.type === 'object' || parent.type === 'void') {
-      const schema = parent.addProperty(name, props)
+      const schema = parent.addProperty(props.name, props)
       return (
         <SchemaMarkupContext.Provider value={schema}>
           {renderChildren()}
@@ -112,6 +111,13 @@ export function createSchemaField<Components extends SchemaReactComponents>(
     } else {
       return renderChildren()
     }
+  }
+
+  function MarkupField<
+    Decorator extends ReactComponentPath<Components>,
+    Component extends ReactComponentPath<Components>
+  >(props: ISchemaMarkupFieldProps<Components, Component, Decorator>) {
+    return <MarkupRender {...props} name={props.name || getRandomName()} />
   }
 
   MarkupField.displayName = 'MarkupField'

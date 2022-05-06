@@ -1,4 +1,4 @@
-import { inject, provide, watch, defineComponent, shallowRef } from 'vue-demi'
+import { inject, provide, watch, shallowRef, computed, markRaw } from 'vue-demi'
 import { GeneralField } from '@formily/core'
 import { isFn, isValid } from '@formily/shared'
 import { Schema } from '@formily/json-schema'
@@ -17,29 +17,37 @@ import { Fragment } from '../shared/fragment'
 
 import type { IRecursionFieldProps, DefineComponent } from '../types'
 
-const RecursionField = defineComponent({
+const resolveEmptySlot = (slots: Record<any, (...args: any[]) => any[]>) => {
+  return Object.keys(slots).length ? h(Fragment, {}, slots) : undefined
+}
+
+const RecursionField = {
   name: 'RecursionField',
   inheritAttrs: false,
-  props: [
-    'schema',
-    'name',
-    'basePath',
-    'onlyRenderProperties',
-    'onlyRenderSelf',
-    'mapProperties',
-    'filterProperties',
-  ],
+  props: {
+    schema: {
+      required: true,
+    },
+    name: [String, Number],
+    basePath: {},
+    onlyRenderProperties: {
+      type: Boolean,
+      default: undefined,
+    },
+    onlyRenderSelf: {
+      type: Boolean,
+      default: undefined,
+    },
+    mapProperties: {},
+    filterProperties: {},
+  },
   setup(props: IRecursionFieldProps) {
     const parentRef = useField()
     const optionsRef = inject(SchemaOptionsSymbol)
     const scopeRef = inject(SchemaExpressionScopeSymbol)
     const createSchema = (schemaProp: IRecursionFieldProps['schema']) =>
-      new Schema(schemaProp)
-    const fieldSchemaRef = shallowRef(createSchema(props.schema))
-
-    watch([() => props.schema], () => {
-      fieldSchemaRef.value = createSchema(props.schema)
-    })
+      markRaw(new Schema(schemaProp))
+    const fieldSchemaRef = computed(() => createSchema(props.schema))
 
     const getPropsFromSchema = (schema: Schema) =>
       schema?.toFieldProps?.({
@@ -70,12 +78,22 @@ const RecursionField = defineComponent({
       const basePath = getBasePath()
       const fieldProps = fieldPropsRef.value
 
-      const renderProperties = (field?: GeneralField) => {
-        if (props.onlyRenderSelf) return
+      const generateSlotsByProperties = (scoped = false) => {
+        if (props.onlyRenderSelf) return {}
         const properties = Schema.getOrderProperties(fieldSchemaRef.value)
-        if (!properties.length) return
-        const children = properties.map(({ schema: item, key: name }) => {
-          const base = field?.address || basePath
+        if (!properties.length) return {}
+        const renderMap: Record<string, ((field?: GeneralField) => unknown)[]> =
+          {}
+        const setRender = (
+          key: string,
+          value: (field?: GeneralField) => unknown
+        ) => {
+          if (!renderMap[key]) {
+            renderMap[key] = []
+          }
+          renderMap[key].push(value)
+        }
+        properties.forEach(({ schema: item, key: name }, index) => {
           let schema: Schema = item
           if (isFn(props.mapProperties)) {
             const mapped = props.mapProperties(item, name)
@@ -88,32 +106,38 @@ const RecursionField = defineComponent({
               return null
             }
           }
-          return h(
-            RecursionField,
-            {
-              key: name,
-              attrs: {
-                schema,
-                name,
-                basePath: base,
+          setRender(schema['x-slot'] ?? 'default', (field?: GeneralField) =>
+            h(
+              RecursionField,
+              {
+                key: `${index}-${name}`,
+                attrs: {
+                  schema,
+                  name,
+                  basePath: field?.address || basePath,
+                },
+                slot: schema['x-slot'],
               },
-            },
-            {}
+              {}
+            )
           )
         })
-
-        const slots: Record<string, () => any> = {}
-        if (children.length > 0) {
-          slots.default = () => [...children]
-        }
-
-        return h(Fragment, {}, slots)
+        const slots = {}
+        Object.keys(renderMap).forEach((key) => {
+          const renderFns = renderMap[key]
+          slots[key] = scoped
+            ? ({ field }) => renderFns.map((fn) => fn(field))
+            : () => renderFns.map((fn) => fn())
+        })
+        return slots
       }
 
       const render = () => {
-        if (!isValid(props.name)) return renderProperties()
+        if (!isValid(props.name))
+          return resolveEmptySlot(generateSlotsByProperties())
         if (fieldSchemaRef.value.type === 'object') {
-          if (props.onlyRenderProperties) return renderProperties()
+          if (props.onlyRenderProperties)
+            return resolveEmptySlot(generateSlotsByProperties())
           return h(
             ObjectField,
             {
@@ -123,9 +147,7 @@ const RecursionField = defineComponent({
                 basePath: basePath,
               },
             },
-            {
-              default: ({ field }) => [renderProperties(field)],
-            }
+            generateSlotsByProperties(true)
           )
         } else if (fieldSchemaRef.value.type === 'array') {
           return h(
@@ -140,7 +162,9 @@ const RecursionField = defineComponent({
             {}
           )
         } else if (fieldSchemaRef.value.type === 'void') {
-          if (props.onlyRenderProperties) return renderProperties()
+          if (props.onlyRenderProperties)
+            return resolveEmptySlot(generateSlotsByProperties())
+          const slots = generateSlotsByProperties(true)
           return h(
             VoidField,
             {
@@ -150,9 +174,7 @@ const RecursionField = defineComponent({
                 basePath: basePath,
               },
             },
-            {
-              default: ({ field }) => [renderProperties(field)],
-            }
+            slots
           )
         }
 
@@ -174,6 +196,6 @@ const RecursionField = defineComponent({
       return render()
     }
   },
-}) as DefineComponent<IRecursionFieldProps>
+} as unknown as DefineComponent<IRecursionFieldProps>
 
 export default RecursionField

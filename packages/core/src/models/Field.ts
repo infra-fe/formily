@@ -53,6 +53,7 @@ import {
 } from '../shared/internals'
 import { Form } from './Form'
 import { BaseField } from './BaseField'
+import { IFormFeedback } from '..'
 export class Field<
   Decorator extends JSXComponent = any,
   Component extends JSXComponent = any,
@@ -89,7 +90,7 @@ export class Field<
     this.props = props
     this.designable = designable
     initializeStart()
-    this.makeIndexes(address)
+    this.locate(address)
     this.initialize()
     this.makeObservable()
     this.makeReactive()
@@ -187,6 +188,7 @@ export class Field<
       readOnly: observable.computed,
       readPretty: observable.computed,
       editable: observable.computed,
+      indexes: observable.computed,
       setDisplay: action,
       setTitle: action,
       setDescription: action,
@@ -247,7 +249,7 @@ export class Field<
               this.caches.value = undefined
             }
           } else {
-            this.caches.value = toJS(value)
+            this.caches.value = toJS(value) ?? toJS(this.initialValue)
             if (display === 'none') {
               this.form.deleteValuesIn(this.path)
             }
@@ -275,33 +277,33 @@ export class Field<
     createReactions(this)
   }
 
-  get selfErrors() {
+  get selfErrors(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'error',
     })
   }
 
-  get errors() {
+  get errors(): IFormFeedback[] {
     return this.form.errors.filter(createChildrenFeedbackFilter(this))
   }
 
-  get selfWarnings() {
+  get selfWarnings(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'warning',
     })
   }
 
-  get warnings() {
+  get warnings(): IFormFeedback[] {
     return this.form.warnings.filter(createChildrenFeedbackFilter(this))
   }
 
-  get selfSuccesses() {
+  get selfSuccesses(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'success',
     })
   }
 
-  get successes() {
+  get successes(): IFormFeedback[] {
     return this.form.successes.filter(createChildrenFeedbackFilter(this))
   }
 

@@ -53,8 +53,20 @@ export default {
             path: 'https://element.formilyjs.org',
           },
           {
+            title: '@formily/element-plus',
+            path: 'https://element-plus.formilyjs.org',
+          },
+          {
             title: '@formily/antdv',
             path: 'https://antdv.formilyjs.org',
+          },
+          {
+            title: '@formily/vant',
+            path: 'https://vant.formilyjs.org',
+          },
+          {
+            title: '@formily/semi',
+            path: 'https://semi.formilyjs.org',
           },
           {
             title: 'aliyun teamix',
@@ -144,8 +156,16 @@ export default {
             path: 'https://element.formilyjs.org',
           },
           {
+            title: '@formily/element-plus',
+            path: 'https://element-plus.formilyjs.org',
+          },
+          {
             title: '@formily/antdv',
             path: 'https://antdv.formilyjs.org',
+          },
+          {
+            title: '@formily/vant',
+            path: 'https://vant.formilyjs.org',
           },
           {
             title: 'aliyun teamix',

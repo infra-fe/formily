@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 import { untracked, autorun, observable } from '@formily/reactive'
 import {
   isArr,
@@ -189,7 +188,7 @@ const getUserReactions = (
       const reaction = shallowCompile(unCompiled, baseScope)
       if (!reaction) return
       if (isFn(reaction)) {
-        return reaction(field)
+        return reaction(field, baseScope)
       }
       const { when, fulfill, otherwise, target, effects } = reaction
       const run = () => {

@@ -1,10 +1,4 @@
-import React, {
-  useLayoutEffect,
-  useMemo,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
+import React, { useLayoutEffect, useRef, useState } from 'react'
 import { isVoidField, Field } from '@formily/core'
 import { useField, observer } from '@formily/react'
 import { Balloon } from '@alifd/next'
@@ -23,31 +17,30 @@ import {
 
 type IPopoverProps = PopoverProps
 
-type ComposedEditable = React.FC<IFormItemProps> & {
-  Popover?: React.FC<IPopoverProps & { title?: React.ReactNode }>
+type ComposedEditable = React.FC<React.PropsWithChildren<IFormItemProps>> & {
+  Popover?: React.FC<
+    React.PropsWithChildren<IPopoverProps & { title?: React.ReactNode }>
+  >
 }
 
-const useInitialPattern = () => {
+const useParentPattern = () => {
   const field = useField<Field>()
-  return useMemo(() => field?.pattern, [])
+  return field?.parent?.pattern || field?.form?.pattern
 }
 
-const useEditable = (): [boolean, (editable: boolean) => void, () => void] => {
-  const pattern = useInitialPattern()
+const useEditable = (): [boolean, (payload: boolean) => void] => {
+  const pattern = useParentPattern()
   const field = useField<Field>()
   useLayoutEffect(() => {
     if (pattern === 'editable') {
-      return field.setPattern('readPretty')
+      field.setPattern('readPretty')
     }
   }, [pattern])
   return [
     field.pattern === 'editable',
-    (payload: boolean) => {
+    (pyaload: boolean) => {
       if (pattern !== 'editable') return
-      field.setPattern(payload ? 'editable' : 'readPretty')
-    },
-    () => {
-      field.setPattern(pattern)
+      field.setPattern(pyaload ? 'editable' : 'readPretty')
     },
   ]
 }
@@ -71,15 +64,15 @@ const useFormItemProps = (): IFormItemProps => {
 }
 
 export const Editable: ComposedEditable = observer((props) => {
-  const [editable, setEditable, resetEditable] = useEditable()
-  const pattern = useInitialPattern()
+  const [editable, setEditable] = useEditable()
+  const pattern = useParentPattern()
   const itemProps = useFormItemProps()
   const field = useField<Field>()
   const basePrefixCls = usePrefixCls()
   const prefixCls = usePrefixCls('formily-editable')
   const ref = useRef<boolean>()
   const innerRef = useRef<HTMLDivElement>()
-  const closeEditable = () => {
+  const recover = () => {
     if (ref.current && !field?.errors?.length) {
       setEditable(false)
     }
@@ -90,6 +83,9 @@ export const Editable: ComposedEditable = observer((props) => {
       <BaseItem {...props} {...itemProps}>
         {pattern === 'editable' && (
           <EditOutlinedIcon className={`${prefixCls}-edit-btn`} />
+        )}
+        {pattern !== 'editable' && (
+          <MessageOutlinedIcon className={`${prefixCls}-edit-btn`} />
         )}
       </BaseItem>
     )
@@ -107,14 +103,14 @@ export const Editable: ComposedEditable = observer((props) => {
   useClickAway((e) => {
     const target = e.target as HTMLElement
     if (target?.closest(`.${basePrefixCls}-overlay-wrapper`)) return
-    closeEditable()
+    recover()
   }, innerRef)
 
   const onClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const target = e.target as HTMLElement
     const close = innerRef.current.querySelector(`.${prefixCls}-close-btn`)
     if (target?.contains(close) || close?.contains(target)) {
-      closeEditable()
+      recover()
     } else if (!ref.current) {
       setTimeout(() => {
         setEditable(true)
@@ -124,10 +120,6 @@ export const Editable: ComposedEditable = observer((props) => {
       })
     }
   }
-
-  useEffect(() => {
-    return resetEditable
-  }, [])
 
   ref.current = editable
 
@@ -144,9 +136,9 @@ export const Editable: ComposedEditable = observer((props) => {
   )
 })
 
-Editable.Popover = observer(({ ...props }) => {
+Editable.Popover = observer((props) => {
   const field = useField<Field>()
-  const pattern = useInitialPattern()
+  const pattern = useParentPattern()
   const [visible, setVisible] = useState(false)
   const prefixCls = usePrefixCls('formily-editable')
   const closePopover = async () => {

@@ -11,6 +11,7 @@ import {
   FieldDisplayTypes,
   FieldValidator,
 } from '@formily/core'
+import { ReactFC } from '@formily/reactive-react'
 import { ISchema, Schema, SchemaKey } from '@formily/json-schema'
 import { FormPathPattern } from '@formily/shared'
 
@@ -23,15 +24,19 @@ export type IProviderProps = {
 }
 
 export interface IFormSpyProps {
-  children?: (form: Form) => React.ReactChild
+  children?: (form: Form) => ReactChild
 }
+
+export type RenderPropsChildren<Payload> =
+  | ((field: Payload, form: Form) => ReactChild)
+  | React.ReactNode
 
 export interface IFieldProps<
   D extends JSXComponent,
   C extends JSXComponent,
   Field = FieldType
 > extends IFieldFactoryProps<D, C> {
-  children?: ((field: Field, form: Form) => React.ReactChild) | React.ReactNode
+  children?: RenderPropsChildren<Field>
   decorator?: [] | [D] | [D, React.ComponentProps<D>] | any[]
   component?: [] | [C] | [C, React.ComponentProps<C>] | any[]
 }
@@ -41,7 +46,7 @@ export interface IVoidFieldProps<
   C extends JSXComponent,
   Field = VoidField
 > extends IVoidFieldFactoryProps<D, C> {
-  children?: ((field: Field, form: Form) => React.ReactChild) | React.ReactNode
+  children?: RenderPropsChildren<Field>
   decorator?: [] | [D] | [D, React.ComponentProps<D>] | any[]
   component?: [] | [C] | [C, React.ComponentProps<C>] | any[]
 }
@@ -62,6 +67,11 @@ export interface ISchemaFieldReactFactoryOptions<
   Components extends SchemaReactComponents = any
 > {
   components?: Components
+  scope?: any
+}
+
+export interface ISchemaFieldOptionContext {
+  getComponent: (name: string) => JSXComponent
   scope?: any
 }
 
@@ -173,3 +183,11 @@ export type ISchemaTypeFieldProps<
   Decorator extends ReactComponentPath<Components>,
   Component extends ReactComponentPath<Components>
 > = ISchemaMarkupFieldProps<Components, Decorator, Component>
+
+export interface IExpressionScopeProps {
+  value?: any
+}
+
+export type ReactChild = React.ReactElement | string | number
+
+export { ReactFC }
