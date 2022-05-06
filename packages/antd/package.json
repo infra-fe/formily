@@ -1,6 +1,6 @@
 {
   "name": "@formily/infrad",
-  "version": "2.1.0",
+  "version": "2.1.0-beta.1",
   "license": "MIT",
   "main": "lib",
   "module": "esm",
@@ -48,12 +48,12 @@
     "dumi": "^1.1.0-rc.8"
   },
   "peerDependencies": {
+    "@ant-design/icons": "4.x",
     "@types/react": ">=16.8.0 || >=17.0.0",
     "@types/react-dom": ">=16.8.0 || >=17.0.0",
     "antd": "^4.0.0",
     "infrad": "^4.0.0",
     "react": ">=16.8.0 || >=17.0.0",
-    "@ant-design/icons": "4.x",
     "react-dom": ">=16.8.0",
     "react-is": ">=16.8.0"
   },
