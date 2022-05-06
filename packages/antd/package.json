@@ -78,7 +78,8 @@
     "react-sticky-box": "^0.9.3"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.shopee.io"
   },
   "gitHead": "ac79c196ae9324889aca5e0501146f9b37b04283"
 }
