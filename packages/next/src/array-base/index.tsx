@@ -8,7 +8,8 @@ import {
   useFieldSchema,
   Schema,
   JSXComponent,
-  ExpressionScope,
+  RecordScope,
+  RecordsScope,
 } from '@formily/react'
 import { SortableHandle } from 'react-sortable-hoc'
 import {
@@ -69,6 +70,8 @@ const ArrayBaseContext = createContext<IArrayBaseContext>(null)
 
 const ItemContext = createContext<IArrayBaseItemProps>(null)
 
+const takeRecord = (val: any) => (typeof val === 'function' ? val() : val)
+
 const useArray = () => {
   return useContext(ArrayBaseContext)
 }
@@ -80,7 +83,7 @@ const useIndex = (index?: number) => {
 
 const useRecord = (record?: number) => {
   const ctx = useContext(ItemContext)
-  return ctx ? ctx.record : record
+  return takeRecord(ctx ? ctx.record : record)
 }
 
 const getSchemaDefaultValue = (schema: Schema) => {
@@ -105,18 +108,23 @@ export const ArrayBase: ComposedArrayBase = (props) => {
   const field = useField<ArrayField>()
   const schema = useFieldSchema()
   return (
-    <ArrayBaseContext.Provider value={{ field, schema, props }}>
-      {props.children}
-    </ArrayBaseContext.Provider>
+    <RecordsScope getRecords={() => field.value}>
+      <ArrayBaseContext.Provider value={{ field, schema, props }}>
+        {props.children}
+      </ArrayBaseContext.Provider>
+    </RecordsScope>
   )
 }
 
 ArrayBase.Item = ({ children, ...props }) => {
   return (
     <ItemContext.Provider value={props}>
-      <ExpressionScope value={{ $record: props.record, $index: props.index }}>
+      <RecordScope
+        getIndex={() => props.index}
+        getRecord={() => takeRecord(props.record)}
+      >
         {children}
-      </ExpressionScope>
+      </RecordScope>
     </ItemContext.Provider>
   )
 }

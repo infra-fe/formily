@@ -74,18 +74,12 @@ const notify = (
 
 export const isHTMLInputEvent = (event: any, stopPropagation = true) => {
   if (event?.target) {
-    if (isValid(event.target.value) || isValid(event.target.checked))
-      return true
     if (
-      event.target.tagName &&
-      event.target.tagName !== 'INPUT' &&
-      event.target.tagName !== 'TEXTAREA' &&
-      event.target.tagName !== 'SELECT'
-    ) {
-      return false
-    }
+      typeof event.target === 'object' &&
+      ('value' in event.target || 'checked' in event.target)
+    )
+      return true
     if (stopPropagation) event.stopPropagation?.()
-    return true
   }
   return false
 }
@@ -205,6 +199,13 @@ export const patchFormValues = (
   const patch = (source: any, path: Array<string | number> = []) => {
     const targetValue = form.getValuesIn(path)
     const targetField = form.query(path).take()
+    const isUnVoidField = targetField && !isVoidField(targetField)
+
+    if (isUnVoidField && targetField.display === 'none') {
+      targetField.caches.value = clone(source)
+      return
+    }
+
     if (allowAssignDefaultValue(targetValue, source)) {
       update(path, source)
     } else {
@@ -216,7 +217,7 @@ export const patchFormValues = (
         })
       } else {
         if (targetField) {
-          if (!isVoidField(targetField) && !targetField.selfModified) {
+          if (isUnVoidField && !targetField.selfModified) {
             update(path, source)
           }
         } else if (form.initialized) {
@@ -713,7 +714,7 @@ export const triggerFormInitialValuesChange = (
   if (Array.isArray(change.object) && change.key === 'length') return
   if (
     contains(form.initialValues, change.object) ||
-    contains(form.initialValues, change.value)
+    form.initialValues === change.value
   ) {
     if (change.type === 'add' || change.type === 'set') {
       patchFormValues(form, path.slice(1), change.value)
@@ -727,8 +728,7 @@ export const triggerFormInitialValuesChange = (
 export const triggerFormValuesChange = (form: Form, change: DataChange) => {
   if (Array.isArray(change.object) && change.key === 'length') return
   if (
-    (contains(form.values, change.object) ||
-      contains(form.values, change.value)) &&
+    (contains(form.values, change.object) || form.values === change.value) &&
     form.initialized
   ) {
     form.notify(LifeCycleTypes.ON_FORM_VALUES_CHANGE)

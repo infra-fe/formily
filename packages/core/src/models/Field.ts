@@ -159,10 +159,10 @@ export class Field<
       decoratorType: observable.ref,
       componentType: observable.ref,
       content: observable.ref,
+      feedbacks: observable.ref,
       decoratorProps: observable,
       componentProps: observable,
       validator: observable.shallow,
-      feedbacks: observable.shallow,
       data: observable.shallow,
       component: observable.computed,
       decorator: observable.computed,
@@ -458,10 +458,13 @@ export class Field<
   getState: IModelGetter<IFieldState> = createStateGetter(this)
 
   onInput = async (...args: any[]) => {
-    if (args[0]?.target) {
-      if (!isHTMLInputEvent(args[0])) return
+    const getValues = (args: any[]) => {
+      if (args[0]?.target) {
+        if (!isHTMLInputEvent(args[0])) return args
+      }
+      return getValuesFromEvent(args)
     }
-    const values = getValuesFromEvent(args)
+    const values = getValues(args)
     const value = values[0]
     this.caches.inputting = true
     this.inputValue = value
