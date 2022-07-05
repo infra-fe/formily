@@ -5,6 +5,7 @@ import { isVoidField } from '@formily/core'
 import { connect, mapProps } from '@formily/react'
 import { useFormLayout, FormLayoutShallowContext } from '../form-layout'
 import { Tooltip, Popover } from 'antd'
+import type { TooltipProps } from 'antd'
 import {
   QuestionCircleOutlined,
   CloseCircleOutlined,
@@ -20,6 +21,7 @@ export interface IFormItemProps {
   colon?: boolean
   tooltip?: React.ReactNode
   tooltipIcon?: React.ReactNode
+  tooltipProps?: TooltipProps
   layout?: 'vertical' | 'horizontal' | 'inline'
   tooltipLayout?: 'icon' | 'text'
   labelStyle?: React.CSSProperties
@@ -161,6 +163,7 @@ export const BaseItem: React.FC<React.PropsWithChildren<IFormItemProps>> = ({
     tooltipLayout,
     tooltip,
     tooltipIcon,
+    tooltipProps,
   } = formLayout
   const labelStyle = { ...formLayout.labelStyle }
   const wrapperStyle = { ...formLayout.wrapperStyle }
@@ -238,6 +241,7 @@ export const BaseItem: React.FC<React.PropsWithChildren<IFormItemProps>> = ({
           placement="top"
           align={{ offset: [0, 10] }}
           title={getOverflowTooltip()}
+          {...tooltipProps}
         >
           {labelChildren}
         </Tooltip>
@@ -250,7 +254,12 @@ export const BaseItem: React.FC<React.PropsWithChildren<IFormItemProps>> = ({
     if (tooltip && tooltipLayout === 'icon' && !overflow) {
       return (
         <span className={`${prefixCls}-label-tooltip-icon`}>
-          <Tooltip placement="top" align={{ offset: [0, 2] }} title={tooltip}>
+          <Tooltip
+            placement="top"
+            align={{ offset: [0, 2] }}
+            title={tooltip}
+            {...tooltipProps}
+          >
             {tooltipIcon}
           </Tooltip>
         </span>
