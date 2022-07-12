@@ -33,56 +33,6 @@ const usePlaceholder = (value?: any) => {
   return !isEmpty(value) ? value : placeholder
 }
 
-interface IGetValueByValue {
-  (
-    array: any[],
-    inputValue: any,
-    keyMap?: { inputKey?: string; outputKey?: string; childrenKey?: string },
-    path?: any[]
-  ): any
-}
-const getValueByValue: IGetValueByValue = (
-  array,
-  inputValue,
-  keyMap,
-  path = []
-) => {
-  const {
-    inputKey = 'value',
-    outputKey = 'label',
-    childrenKey = 'children',
-  } = keyMap || {}
-  let outputValue: any
-  if (isArr(array)) {
-    if (isArr(inputValue)) {
-      outputValue = inputValue.map((v) =>
-        getValueByValue(array, v, keyMap, path)
-      )
-    } else {
-      array.forEach((obj) => {
-        if (outputValue === undefined) {
-          const currentPath = [...path, obj?.[outputKey]]
-          if (obj?.[inputKey] === inputValue) {
-            outputValue = {
-              leaf: obj?.[outputKey],
-              whole: currentPath,
-            }
-          } else if (obj?.[childrenKey]?.length) {
-            outputValue = getValueByValue(
-              obj?.[childrenKey],
-              inputValue,
-              keyMap,
-              currentPath
-            )
-          }
-        }
-      })
-    }
-    return outputValue
-  }
-  return undefined
-}
-
 const Input: React.FC<React.PropsWithChildren<InputProps>> = (props) => {
   return <NextInput {...props} isPreview />
 }
@@ -208,6 +158,12 @@ const TreeSelect: React.FC<React.PropsWithChildren<TreeSelectProps>> = observer(
   }
 )
 
+type SelectOptionType = {
+  value: string
+  label: string
+  children?: SelectOptionType[]
+}
+
 const Cascader: React.FC<React.PropsWithChildren<CascaderProps>> = observer(
   (props) => {
     const field = useField<Field>()
@@ -218,15 +174,43 @@ const Cascader: React.FC<React.PropsWithChildren<CascaderProps>> = observer(
       : props?.dataSource?.length
       ? props.dataSource
       : []
+    const findSelectedItem = (
+      items: SelectOptionType[],
+      val: string | number
+    ) => {
+      return items.find((item) => item.value == val)
+    }
+    const findSelectedItems = (
+      sources: SelectOptionType[],
+      selectedValues: Array<string[] | number[]>
+    ): Array<SelectOptionType[]> => {
+      return selectedValues.map((value) => {
+        const result: Array<SelectOptionType> = []
+        let items = sources
+        value.forEach((val) => {
+          const selectedItem = findSelectedItem(items, val)
+          result.push({
+            label: selectedItem?.label ?? '',
+            value: selectedItem?.value,
+          })
+          items = selectedItem?.children ?? []
+        })
+        return result
+      })
+    }
     const getSelected = () => {
-      return props.multiple ? toArr(props.value) : [props.value]
+      const val = toArr(props.value)
+      // unified conversion to multi selection mode
+      return props.multiple ? val : [val]
     }
     const getLabels = () => {
       const selected = getSelected()
-      const labels = getValueByValue(dataSource, selected)
-        ?.filter((item) => isValid(item))
-        ?.map((item) => item?.whole?.join('/'))
-        .join(', ')
+      const values = findSelectedItems(dataSource, selected)
+      const labels = values
+        .map((val: Array<{ value: string; label: string }>) => {
+          return val.map((item) => item.label).join('/')
+        })
+        .join(' ')
       return labels || placeholder
     }
     return <div className={cls(prefixCls, props.className)}>{getLabels()}</div>
