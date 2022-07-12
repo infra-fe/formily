@@ -40,6 +40,7 @@
     "version:preminor": "lerna version preminor --preid beta",
     "version:major": "lerna version major",
     "release:force": "lerna publish from-package --yes",
+    "publish:infrad": "yarn workspace @formily/infrad run publish:infrad",
     "lint": "eslint ."
   },
   "resolutions": {
