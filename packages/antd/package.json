@@ -1,6 +1,6 @@
 {
   "name": "@formily/infrad",
-  "version": "2.1.12",
+  "version": "2.1.13",
   "license": "MIT",
   "main": "lib",
   "module": "esm",
@@ -52,8 +52,8 @@
     "@types/react": ">=16.8.0 || >=17.0.0",
     "@types/react-dom": ">=16.8.0 || >=17.0.0",
     "antd": "^4.0.0",
-    "infrad": "^4.0.0",
     "infra-design-icons": "^4.7.16",
+    "infrad": "^4.0.0",
     "react": ">=16.8.0 || >=17.0.0",
     "react-dom": ">=16.8.0",
     "react-is": ">=16.8.0"
