@@ -4,4 +4,5 @@ exports.default = ({ orig, file, config }) => {
     .replace(`import 'antd`, `import 'infrad`)
     .replace(`import("antd`, `import("infrad`)
     .replace(`require("antd`, `require("infrad`)
+    .replace(`from '@ant-design/icons`, `from 'infra-design-icons`)
 }
