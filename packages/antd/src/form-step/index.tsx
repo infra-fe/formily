@@ -1,17 +1,17 @@
-import React, { Fragment } from 'react'
-import { define, observable, action, markRaw, model } from '@formily/reactive'
-import { Steps } from 'antd'
-import cls from 'classnames'
-import { StepsProps, StepProps } from 'antd/lib/steps'
 import { Form, VoidField } from '@formily/core'
+import { Schema, SchemaKey } from '@formily/json-schema'
 import {
   connect,
-  useField,
   observer,
-  useFieldSchema,
   RecursionField,
+  useField,
+  useFieldSchema,
 } from '@formily/react'
-import { Schema, SchemaKey } from '@formily/json-schema'
+import { action, define, markRaw, model, observable } from '@formily/reactive'
+import { Steps } from 'antd'
+import { StepProps, StepsProps } from 'antd/lib/steps'
+import cls from 'classnames'
+import React, { Fragment } from 'react'
 import { usePrefixCls } from '../__builtins__'
 
 export interface IFormStep {
@@ -146,7 +146,7 @@ export const FormStep = connect(
       <div className={cls(prefixCls, className)}>
         <Steps
           {...props}
-          style={{ marginBottom: 10, ...props.style }}
+          style={{ padding: 0, marginBottom: 32, ...props.style }}
           current={current}
         >
           {steps.map(({ props }, key) => {

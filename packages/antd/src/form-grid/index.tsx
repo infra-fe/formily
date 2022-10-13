@@ -1,10 +1,10 @@
-import React, { useLayoutEffect, useRef, useMemo, useContext } from 'react'
-import { markRaw } from '@formily/reactive'
-import { observer } from '@formily/react'
 import { Grid, IGridOptions } from '@formily/grid'
-import { usePrefixCls, pickDataProps } from '../__builtins__'
-import { useFormLayout } from '../form-layout'
+import { observer } from '@formily/react'
+import { markRaw } from '@formily/reactive'
 import cls from 'classnames'
+import React, { useContext, useLayoutEffect, useMemo, useRef } from 'react'
+import { useFormLayout } from '../form-layout'
+import { pickDataProps, usePrefixCls } from '../__builtins__'
 
 const FormGridContext = React.createContext<Grid<HTMLElement>>(null)
 
@@ -64,7 +64,7 @@ export const FormGrid: ComposedFormGrid = observer(
   }: React.PropsWithChildren<IFormGridProps>) => {
     const layout = useFormLayout()
     const options = {
-      columnGap: layout?.gridColumnGap ?? 8,
+      columnGap: layout?.gridColumnGap ?? 16,
       rowGap: layout?.gridRowGap ?? 4,
       ...props,
     }
