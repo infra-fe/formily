@@ -1,13 +1,13 @@
-import React, { Fragment, useMemo } from 'react'
-import { isFn, isValid } from '@formily/shared'
 import { GeneralField } from '@formily/core'
 import { Schema } from '@formily/json-schema'
+import { isFn, isValid } from '@formily/shared'
+import React, { Fragment, useMemo } from 'react'
+import { useExpressionScope, useField } from '../hooks'
 import { SchemaContext } from '../shared'
 import { IRecursionFieldProps, ReactFC } from '../types'
-import { useField, useExpressionScope } from '../hooks'
-import { ObjectField } from './ObjectField'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
+import { ObjectField } from './ObjectField'
 import { VoidField } from './VoidField'
 
 const useFieldProps = (schema: Schema) => {
@@ -61,7 +61,6 @@ export const RecursionField: ReactFC<IRecursionFieldProps> = (props) => {
       </Fragment>
     )
   }
-
   const render = () => {
     if (!isValid(props.name)) return renderProperties()
     if (fieldSchema.type === 'object') {
