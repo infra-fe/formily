@@ -146,7 +146,7 @@ export const FormStep = connect(
       <div className={cls(prefixCls, className)}>
         <Steps
           {...props}
-          style={{ marginBottom: 10, ...props.style }}
+          style={{ marginBottom: 32, ...props.style }}
           current={current}
         >
           {steps.map(({ props }, key) => {
