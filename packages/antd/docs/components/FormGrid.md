@@ -29,6 +29,7 @@ export default () => {
           x-component-props={{
             maxColumns: 3,
             minColumns: 2,
+            rowGap: 0,
           }}
         >
           <SchemaField.String
@@ -107,6 +108,7 @@ const schema = {
       'x-component': 'FormGrid',
       'x-component-props': {
         minColumns: [4, 6, 10],
+        rowGap: 0,
       },
       properties: {
         aaa: {

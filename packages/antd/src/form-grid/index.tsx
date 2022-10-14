@@ -64,7 +64,7 @@ export const FormGrid: ComposedFormGrid = observer(
   }: React.PropsWithChildren<IFormGridProps>) => {
     const layout = useFormLayout()
     const options = {
-      columnGap: layout?.gridColumnGap ?? 8,
+      columnGap: layout?.gridColumnGap ?? 16,
       rowGap: layout?.gridRowGap ?? 4,
       ...props,
     }
