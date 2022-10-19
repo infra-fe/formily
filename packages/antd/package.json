@@ -1,5 +1,5 @@
 {
-  "name": "@formily/antd",
+  "name": "@formily/infrad",
   "version": "2.2.8",
   "license": "MIT",
   "main": "lib",
@@ -31,12 +31,17 @@
   "scripts": {
     "start": "dumi dev",
     "build": "rimraf -rf lib esm dist && npm run create:style && npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:style",
+    "build:infrad": "rimraf -rf lib esm dist && npm run create:style && npm run build:cjs-infrad && npm run build:esm-infrad && npm run build:umd && npm run build:style-infrad && ts-node replacer-less-infrad",
+    "build:esm-infrad": "yarn build:esm && tsc-alias -p tsconfig.build.esm.infrad.json",
+    "build:cjs-infrad": "yarn build:cjs && tsc-alias -p tsconfig.build.cjs.infrad.json",
+    "build:style-infrad": "ts-node build-style",
     "create:style": "ts-node create-style",
     "build:style": "ts-node build-style",
     "build:cjs": "tsc --project tsconfig.build.json",
-    "build:esm": "tsc --project tsconfig.build.json --module es2015 --outDir esm",
+    "build:esm": "tsc --project tsconfig.build.json --target esnext --module es2015 --outDir esm",
     "build:umd": "rollup --config",
-    "build:docs": "dumi build"
+    "build:docs": "dumi build",
+    "publish:infrad": "yarn build:infrad && yarn publish"
   },
   "devDependencies": {
     "@umijs/plugin-sass": "^1.1.1",
@@ -47,6 +52,8 @@
     "@types/react": ">=16.8.0",
     "@types/react-dom": ">=16.8.0",
     "antd": "<=4.22.8",
+    "infra-design-icons": "^4.7.16",
+    "infrad": "^4.0.0",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
     "react-is": ">=16.8.0"
@@ -72,7 +79,8 @@
     "react-sticky-box": "^0.9.3"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.shopee.io"
   },
   "gitHead": "ac79c196ae9324889aca5e0501146f9b37b04283"
 }
